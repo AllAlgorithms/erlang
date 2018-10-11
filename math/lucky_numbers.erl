@@ -12,17 +12,24 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
-go(Size) ->
-    Iterations = round(math:ceil(math:sqrt(Size))),
-    go(Iterations, 2, lists:seq(1,Size)).
+go(Size) -> go(2, lists:seq(1,Size)).
 
-go(0, _, List) -> List;
-go(Iterations, DeleteEvery, List) -> go(Iterations-1,DeleteEvery+1, sieve(DeleteEvery,List,[])).
+go(N, List) when length(List) < N -> List;
+go(N, List) -> go(N+1, remove_every_nth(N,List)).
 
-sieve(DeleteEvery, Remainder, NewList) when length(Remainder) < DeleteEvery -> NewList++Remainder;
-sieve(DeleteEvery, OldList, NewList) ->
-    {Keep,[_Drop|Tail]} = lists:split(DeleteEvery-1, OldList),
-    sieve(DeleteEvery,Tail,NewList++Keep).
+remove_every_nth(N,List) -> remove_every_nth(1,N,List,[]).
+
+remove_every_nth(_, _, [], List) -> lists:reverse(List);
+remove_every_nth(N, N, [_|T], List) -> remove_every_nth(1, N, T, List);
+remove_every_nth(K, N, [H|T], List) -> remove_every_nth(K+1, N, T, [H|List]).
+
+remove_every_nth_test_() ->
+    List = lists:seq(1,20),
+    [
+     ?_assertEqual([1,3,5,7,9,11,13,15,17,19], remove_every_nth(2,List)),
+     ?_assertEqual([1,2,4,5,7,8,10,11,13,14,16,17,19,20], remove_every_nth(3,List)),
+     ?_assertEqual([1,2,3,5,6,7,9,10,11,13,14,15,17,18,19], remove_every_nth(4,List))
+    ].
 
 go_test_() ->
     [
